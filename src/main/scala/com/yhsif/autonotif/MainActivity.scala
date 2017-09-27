@@ -107,12 +107,11 @@ class MainActivity extends AppCompatActivity with View.OnClickListener {
     item.getItemId() match {
       case R.id.action_about => {
         val view = getLayoutInflater().inflate(R.layout.about, null)
-        val tv = view.findViewById(R.id.about_text).asInstanceOf[TextView]
+        val tv = view.findViewById[TextView](R.id.about_text)
         tv.setText(Html.fromHtml(getString(R.string.about_text)))
         tv.setMovementMethod(LinkMovementMethod.getInstance())
         view
-          .findViewById(R.id.about_title)
-          .asInstanceOf[TextView]
+          .findViewById[TextView](R.id.about_title)
           .setText(
             getString(R.string.about_title, getString(R.string.app_name)))
         new AlertDialog.Builder(this)
@@ -130,7 +129,7 @@ class MainActivity extends AppCompatActivity with View.OnClickListener {
 
   // for View.OnClickListener
   override def onClick(v: View): Unit = {
-    val rv = findViewById(R.id.pkg_list).asInstanceOf[RecyclerView]
+    val rv = findViewById[RecyclerView](R.id.pkg_list)
     val i = rv.getChildLayoutPosition(v)
     adapter.foreach { a =>
       val data = a.list.apply(i)

@@ -8,11 +8,11 @@ import android.widget.TextView
 
 class PkgViewHolder(v: View) extends RecyclerView.ViewHolder(v) {
   def setIcon(icon: Drawable) = {
-    v.findViewById(R.id.icon).asInstanceOf[ImageView].setImageDrawable(icon)
+    v.findViewById[ImageView](R.id.icon).setImageDrawable(icon)
   }
 
   def setName(name: String) = {
-    v.findViewById(R.id.name).asInstanceOf[TextView].setText(name)
+    v.findViewById[TextView](R.id.name).setText(name)
   }
 
   def setBackground(i: Int) = {

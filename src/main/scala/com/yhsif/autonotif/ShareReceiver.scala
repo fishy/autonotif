@@ -80,9 +80,8 @@ class ShareReceiver extends Activity {
 
   def showToast(text: String): Unit = {
     val toast = Toast.makeText(this, text, Toast.LENGTH_LONG)
-    Option(toast.getView().findViewById(android.R.id.message)).foreach { v =>
+    Option(toast.getView().findViewById[TextView](android.R.id.message)).foreach { view =>
       // Put the icon on the right
-      val view = v.asInstanceOf[TextView]
       view.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.mipmap.icon, 0)
       view.setCompoundDrawablePadding(
         getResources().getDimensionPixelSize(R.dimen.toast_padding))
