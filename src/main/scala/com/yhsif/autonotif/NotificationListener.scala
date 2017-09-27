@@ -1,6 +1,7 @@
 package com.yhsif.autonotif
 
 import android.app.PendingIntent
+import android.app.Notification
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.NameNotFoundException
@@ -8,6 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Icon
+import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
@@ -52,6 +54,30 @@ object NotificationListener {
       JavaConversions.setAsJavaSet(Set.empty))
     return Set.empty ++ JavaConversions.asScalaSet(javaSet)
   }
+
+  def getFirstString(extras: Bundle, keys: String*): String = {
+    keys.foreach { key =>
+      {
+        Option(extras.getCharSequence(key)) match {
+          case Some(s) => return s.toString()
+          case None =>
+        }
+      }
+    }
+    return ""
+  }
+
+  def getNotifText(notif: Notification): String = {
+    return getFirstString(
+      notif.extras,
+      Notification.EXTRA_BIG_TEXT,
+      Notification.EXTRA_TEXT,
+      Notification.EXTRA_SUMMARY_TEXT,
+      Notification.EXTRA_SUB_TEXT,
+      Notification.EXTRA_INFO_TEXT,
+      Notification.EXTRA_TITLE,
+      Notification.EXTRA_TITLE_BIG)
+  }
 }
 
 class NotificationListener extends NotificationListenerService {
@@ -95,44 +121,42 @@ class NotificationListener extends NotificationListenerService {
       val notif = sbn.getNotification()
       val key = sbn.getKey()
       val label = NotificationListener.getPackageName(this, pkg, true)
-      val text = Option(notif.tickerText) match {
-        case Some(s) => s.toString()
-        case None => ""
+      val text = NotificationListener.getNotifText(notif)
+      if (label == "" || text == "") {
+        return
       }
 
-      if (text != "") {
-        val replyIntent = new Intent().setAction(ReplyAction)
-        val replyPendingIntent = PendingIntent.getBroadcast(
-          this,
-          0,
-          replyIntent,
-          PendingIntent.FLAG_UPDATE_CURRENT)
+      val replyIntent = new Intent().setAction(ReplyAction)
+      val replyPendingIntent = PendingIntent.getBroadcast(
+        this,
+        0,
+        replyIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val remoteInput = new RemoteInput.Builder(ReplyKey)
-          .setLabel(getString(R.string.notif_reply))
-          .build()
+      val remoteInput = new RemoteInput.Builder(ReplyKey)
+        .setLabel(getString(R.string.notif_reply))
+        .build()
 
-        val convBuilder = new UnreadConversation.Builder(label)
-          .setReplyAction(replyPendingIntent, remoteInput)
-          .addMessage(text)
-          .setLatestTimestamp(System.currentTimeMillis())
+      val convBuilder = new UnreadConversation.Builder(label)
+        .setReplyAction(replyPendingIntent, remoteInput)
+        .addMessage(text)
+        .setLatestTimestamp(System.currentTimeMillis())
 
-        val notifBuilder = new NotificationCompat.Builder(this)
-          .setSmallIcon(R.drawable.icon_notif)
-          .setContentText(text)
-          .extend(new CarExtender().setUnreadConversation(convBuilder.build()))
+      val notifBuilder = new NotificationCompat.Builder(this)
+        .setSmallIcon(R.drawable.icon_notif)
+        .setContentText(text)
+        .extend(new CarExtender().setUnreadConversation(convBuilder.build()))
 
-        getBitmap(Option(notif.getLargeIcon()), Option(notif.getSmallIcon()))
-          .foreach { bitmap =>
-            notifBuilder.setLargeIcon(bitmap)
-          }
+      getBitmap(Option(notif.getLargeIcon()), Option(notif.getSmallIcon()))
+        .foreach { bitmap =>
+          notifBuilder.setLargeIcon(bitmap)
+        }
 
-        lastId = lastId + 1
-        notifMap(key) = lastId
-        NotificationManagerCompat
-          .from(this)
-          .notify(lastId, notifBuilder.build())
-      }
+      lastId = lastId + 1
+      notifMap(key) = lastId
+      NotificationManagerCompat
+        .from(this)
+        .notify(lastId, notifBuilder.build())
     }
   }
 
