@@ -3,8 +3,8 @@ scalaVersion := "2.11.8"
 enablePlugins(AndroidApp)
 android.useSupportVectors
 
-versionCode := Some(12)
-version := "0.2.2-beta"
+versionCode := Some(13)
+version := "0.2.3-beta"
 
 instrumentTestRunner :=
   "android.support.test.runner.AndroidJUnitRunner"
