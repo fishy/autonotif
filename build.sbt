@@ -15,11 +15,14 @@ minSdkVersion := "23"
 
 javacOptions in Compile ++= "-source" :: "1.7" :: "-target" :: "1.7" :: Nil
 
+resolvers +=
+  "Google Android Maven" at "https://maven.google.com"
+
 libraryDependencies ++=
-  "com.android.support" % "appcompat-v7" % "25.3.1" ::
-  "com.android.support" % "cardview-v7" % "25.3.1" ::
-  "com.android.support" % "recyclerview-v7" % "25.3.1" ::
-  "com.android.support" % "support-v4" % "25.3.1" ::
+  "com.android.support" % "appcompat-v7" % "26.1.0" ::
+  "com.android.support" % "cardview-v7" % "26.1.0" ::
+  "com.android.support" % "recyclerview-v7" % "26.1.0" ::
+  "com.android.support" % "support-core-utils" % "26.1.0" ::
   "com.android.support.test" % "runner" % "0.5" % "androidTest" ::
   "com.android.support.test.espresso" % "espresso-core" % "2.2.2" % "androidTest" ::
   Nil

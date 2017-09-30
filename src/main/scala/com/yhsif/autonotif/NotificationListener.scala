@@ -2,6 +2,8 @@ package com.yhsif.autonotif
 
 import android.app.PendingIntent
 import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.NameNotFoundException
@@ -9,6 +11,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -25,6 +28,7 @@ import scala.collection.mutable.Map
 object NotificationListener {
   val ReplyAction = "com.yhsif.autonotif.ACTION_REPLY" // not really used
   val ReplyKey = "com.yhsif.autonorif.KEY_REPLY" // not really used
+  val ChannelId = "android_auto"
 
   var connected = false
   var startMain = false
@@ -83,6 +87,7 @@ object NotificationListener {
 class NotificationListener extends NotificationListenerService {
   import NotificationListener.ReplyAction
   import NotificationListener.ReplyKey
+  import NotificationListener.ChannelId
   import NotificationListener.connected
   import NotificationListener.startMain
 
@@ -126,6 +131,22 @@ class NotificationListener extends NotificationListenerService {
         return
       }
 
+      lazy val channelId = {
+        // Lazy create the notification channel
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          val channel = new NotificationChannel(
+            ChannelId,
+            getString(R.string.channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT)
+          channel.setDescription(getString(R.string.channel_desc))
+          channel.setShowBadge(false)
+          getSystemService(Context.NOTIFICATION_SERVICE)
+            .asInstanceOf[NotificationManager]
+            .createNotificationChannel(channel)
+        }
+        ChannelId
+      }
+
       val replyIntent = new Intent().setAction(ReplyAction)
       val replyPendingIntent = PendingIntent.getBroadcast(
         this,
@@ -142,9 +163,10 @@ class NotificationListener extends NotificationListenerService {
         .addMessage(text)
         .setLatestTimestamp(System.currentTimeMillis())
 
-      val notifBuilder = new NotificationCompat.Builder(this)
+      val notifBuilder = new NotificationCompat.Builder(this, channelId)
         .setSmallIcon(R.drawable.icon_notif)
         .setContentText(text)
+        .setSound(null)
         .extend(new CarExtender().setUnreadConversation(convBuilder.build()))
 
       getBitmap(Option(notif.getLargeIcon()), Option(notif.getSmallIcon()))
